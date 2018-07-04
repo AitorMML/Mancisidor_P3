@@ -12,32 +12,30 @@
 
 module DataMemory 
 #(	parameter DATA_WIDTH = 32,
-	parameter MEMORY_DEPTH = 1024
+	parameter MEMORY_DEPTH = 512	//$sp = 0x10010000 + d'512
 
 )
 (
 	input [DATA_WIDTH-1:0] WriteData,
 	input [DATA_WIDTH-1:0]  Address,
-	input MemWrite,
-	input MemRead, 
-	input clk,
+	input MemWrite,MemRead, clk,
 	output  [DATA_WIDTH-1:0]  ReadData
 );
 	
 	// Declare the RAM variable
 	reg [DATA_WIDTH-1:0] ram[MEMORY_DEPTH-1:0];
 	wire [DATA_WIDTH-1:0] ReadDataAux;
-	wire [DATA_WIDTH-1:0] AddressAux;	// Dirección traducida a esta memoria.
+	wire [DATA_WIDTH-1:0] AddressAux; //Direccion a memoria
 	
-	assign AddressAux = (Address - 32'h1001_0000) >> 2; //Recorrida a la derecha para acortar los bits
+	assign AddressAux = (Address -32'h1001_0000)>>2; //Corrida a la derecha 
 
 	always @ (posedge clk)
 	begin
 		// Write
 		if (MemWrite)
-			ram[AddressAux] <= WriteData;	
+			ram[AddressAux] <= WriteData;
 	end
 	assign ReadDataAux = ram[AddressAux];
-  	assign ReadData = {DATA_WIDTH{MemRead}}& ReadDataAux; //Llena de 1's y hace el AND para sacar la dirección solo si MemRead está encendido.
+  	assign ReadData = ReadDataAux & {DATA_WIDTH{MemRead}};
 
 endmodule
