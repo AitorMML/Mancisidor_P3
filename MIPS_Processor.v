@@ -67,7 +67,6 @@ wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
 wire [4:0] IorJ_wire;
 wire [4:0] WriteRegister_wire;
-
 wire [27:0] ShiftedInstruction_wire;
 wire [31:0] Instruction_wire;
 wire [31:0] ReadData1_wire;
@@ -78,7 +77,9 @@ wire [31:0] ALUResult_wire;
 wire [31:0] ReadMemData_wire;
 wire [31:0] WriteBack_wire;
 wire [31:0] PC_4_wire;
+wire [31:0] PC_4_wire_IF_ID;
 wire [31:0] PC_wire;
+wire [31:0] Instruction_wire_IF_ID;
 wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] PCtoBranch_wire;
 wire [31:0] ShiftedImmediateExtended_wire;
@@ -100,7 +101,7 @@ integer ALUStatus;
 Control
 ControlUnit
 (
-	.OP(Instruction_wire[31:26]),
+	.OP(Instruction_wire_IF_ID[31:26]),
 	.JAL(JAL_wire),
 	.Jump(Jump_wire),
 	.RegDst(RegDst_wire),
@@ -165,6 +166,17 @@ MUX_ForRTypeAndIType
 
 
 
+IF_ID
+IF_ID_Reg
+(
+	.clk(clk),
+	.reset(reset),
+	.PC4(PC_4_wire),
+	.Instruction(Instruction_wire),
+	.PC4_IF_ID(PC_4_wire_IF_ID),
+	.Instruction_IF_ID(Instruction_wire_IF_ID)	
+
+);
 RegisterFile
 Register_File
 (
@@ -172,8 +184,8 @@ Register_File
 	.reset(reset),
 	.RegWrite(RegWrite_wire),
 	.WriteRegister(WriteRegister_wire),
-	.ReadRegister1(Instruction_wire[25:21]),
-	.ReadRegister2(Instruction_wire[20:16]),
+	.ReadRegister1(Instruction_wire_IF_ID[25:21]),
+	.ReadRegister2(Instruction_wire_IF_ID[20:16]),
 	.WriteData(JALResult_Writeback_wire),	//viene de RAM
 	.ReadData1(ReadData1_wire),
 	.ReadData2(ReadData2_wire)
