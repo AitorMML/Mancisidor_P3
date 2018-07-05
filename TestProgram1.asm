@@ -1,6 +1,44 @@
-#Description: Test program for BEQ, BNE
+# Description: Tarea pipeline
 
 .text
+	nop
+	add $zero, $zero, $zero # nop		
+	add $zero, $zero, $zero # nop	
+	addi $t0, $zero, 5
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	add $t1, $t0, $zero
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	addi $t1, $t1, 2
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	addi $t2, $t1, 3
+	addi $t3, $t3, 0x10010000
+		add $zero, $zero, $zero # nop
+	# Libra dependencia de $t2
+		add $zero, $zero, $zero # nop
+	# Tibra dependencia de $t3
+	sw $t2, 0($t3)
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	add $s0, $t2, $t1
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	sub $s1, $s0, $t3
+	lw $t2, 0($t3)
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	addi $s2, $t2, -2
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	or $s2, $s2, $t4
+		add $zero, $zero, $zero # nop
+		add $zero, $zero, $zero # nop
+	sll $s7, $s2, 2
+	
+
+
 
 #	addi $sp, $zero, $10010200	# Inicio de memoria + d'512
 
@@ -15,27 +53,27 @@
 #	jr $t0
 
 
-	addi $t3, $zero, 15
-adds:
-	addi $t0, $t0, 5
-	addi $t1, $t1, 6
-	addi $t2, $t2, 7
-	beq $t0, $t3, salto
+#	addi $t3, $zero, 15
+#adds:
+#	addi $t0, $t0, 5
+#	addi $t1, $t1, 6
+#	addi $t2, $t2, 7
+#	beq $t0, $t3, salto
 	
-	jal adds
+#	jal adds
 	
-subs:
-	addi $t0, $zero, -5
-	addi $t1, $zero, -4
-	addi $t2, $zero, -3
+#subs:
+#	addi $t0, $zero, -5
+#	addi $t1, $zero, -4
+#	addi $t2, $zero, -3
 	
-	j exit
+#	j exit
 	
-salto:
-	jr $ra
+#salto:
+#	jr $ra
 
-exit:
-	addi $t0, $zero, 20
+#exit:
+#	addi $t0, $zero, 20
 
 
 #	addi $t0, $zero, 5

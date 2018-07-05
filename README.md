@@ -1,24 +1,13 @@
-# Mancisidor_P2
-MIPS_SingleCycle
+Practica 3
+
+MIPS Pipeline
 
 
-add	x
-sub	x
-or	x
-and	x
-nor	x
-ssl	x
-srl	x
+IF/ID
+ID/EX
+EX/MEM
+MEM/WB
 
-addi	x
-andi	x
-ori	x
-lui	x
-sw	x
-lw
+Forwarding Unit
 
-beq
-bne
-j
-jr
-jal
+Hazard Detection Unit

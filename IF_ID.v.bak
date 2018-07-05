@@ -1,7 +1,7 @@
 
 module IF_ID
 #(
-	parameter N=67
+	parameter N=64
 )
 (
 	input clk,
@@ -18,16 +18,11 @@ module IF_ID
 );
 always@(negedge reset or negedge clk) begin
 	if(reset==0)
-		begin
-			PC4_IF_ID 			<= 32'h0040_0000;//4_194_304;
-			Instruction_IF_ID <= 0;
-		end
+		PC4_IF_ID <= 32'h0040_0000;//4_194_304;
 	else 
 		if	(Enable_IF_ID==1)
-			begin
-				PC4_IF_ID <= PC4;
-				Instruction_IF_ID <= Instruction;
-			end
+			PC4_IF_ID <= PC4;
+			Instruction_IF_ID <= Instruction;
 end
 endmodule
 

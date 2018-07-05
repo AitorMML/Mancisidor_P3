@@ -1,7 +1,7 @@
 
 module ID_EX
 #(
-	parameter N=64
+	parameter N=155
 )
 (
 	input clk,
@@ -21,9 +21,11 @@ module ID_EX
 	input BEQ,
 	input MEMWrite,
 	input MEMRead,
+	input MEMtoReg,
+	input RegWrite,
 	input JAL,
 	input J,
-	input JR,
+	input JR, 
 	
 	output reg [31:0] PC4_ID_EX,
 	output reg [31:0] ReadData1_ID_EX,
@@ -34,38 +36,62 @@ module ID_EX
 	output reg [2:0] ALUOp_ID_EX,
 	output reg RegDest_ID_EX,
 	output reg ALUSrc_ID_EX,
+	output reg RegWrite_ID_EX,
 	output reg BNE_ID_EX,
 	output reg BEQ_ID_EX,
 	output reg MEMWrite_ID_EX,
 	output reg MEMRead_ID_EX,
+	output reg MEMtoReg_ID_EX,
 	output reg JAL_ID_EX,
 	output reg J_ID_EX,
 	output reg JR_ID_EX
 
 );
 always@(negedge reset or negedge clk) begin
-	if(reset==0)
-		PC4_ID_EX<= 32'h0040_0000;//4_194_304;
+	if(reset==0) 
+		begin
+			PC4_ID_EX <= 32'h0040_0000;//4_194_304;
+			ReadData1_ID_EX 	<= 0;
+			ReadData2_ID_EX 	<= 0;
+			SignExtend_ID_EX 	<= 0;
+			Rt_ID_EX 			<= 0;
+			Rd_ID_EX 			<= 0;
+			ALUOp_ID_EX 		<= 0;
+			RegDest_ID_EX 		<= 0;
+			ALUSrc_ID_EX 		<= 0;
+			BNE_ID_EX 			<= 0;
+			BEQ_ID_EX 			<= 0;
+			RegWrite_ID_EX 	<= 0;
+			MEMWrite_ID_EX 	<= 0;
+			MEMRead_ID_EX 		<= 0;
+			MEMtoReg_ID_EX 	<= 0;
+			JAL_ID_EX 			<= 0;
+			J_ID_EX 				<= 0;
+			JR_ID_EX 			<= 0;
+		end
 	else 
-		if	(Enable_ID_EX==1)
-			 PC4_ID_EX<=PC4;
-			 ReadData1_ID_EX <=  ReadData1;
-			 ReadData2_ID_EX <= ReadData2;
-			 SignExtend_ID_EX <= ImmediateExtend;
-			 Rt_ID_EX <= Rt;
-			 Rd_ID_EX <= Rd;
-			 ALUOp_ID_EX <= ALUOp;
-			 RegDest_ID_EX <=RegDest;
-			 ALUSrc_ID_EX <= ALUSrc;
-			 BNE_ID_EX <= BNE;
-			 BEQ_ID_EX <= BEQ;
-			 MEMWrite_ID_EX <= MEMWrite;
-			 MEMRead_ID_EX <= MEMRead;
-			 JAL_ID_EX <= JAL;
-			 J_ID_EX <= J;
-			 JR_ID_EX <=JR;
-			 
-			 
+		if	(Enable_ID_EX == 1) 
+			begin
+				PC4_ID_EX 			<= PC4;
+				ReadData1_ID_EX 	<= ReadData1;
+				ReadData2_ID_EX 	<= ReadData2;
+				SignExtend_ID_EX 	<= ImmediateExtend;
+				Rt_ID_EX 			<= Rt;
+				Rd_ID_EX 			<= Rd;
+				ALUOp_ID_EX 		<= ALUOp;
+				RegDest_ID_EX 		<= RegDest;
+				ALUSrc_ID_EX 		<= ALUSrc;
+				BNE_ID_EX 			<= BNE;
+				BEQ_ID_EX 			<= BEQ;
+				RegWrite_ID_EX 	<= RegWrite;
+				MEMWrite_ID_EX 	<= MEMWrite;
+				MEMRead_ID_EX 		<= MEMRead;
+				MEMtoReg_ID_EX 	<= MEMtoReg;
+				JAL_ID_EX 			<= JAL;
+				J_ID_EX 				<= J;
+				JR_ID_EX 			<= JR;
+			end
 end
+
 endmodule
 
