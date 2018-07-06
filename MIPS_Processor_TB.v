@@ -36,7 +36,7 @@ initial // Clock generator
   end
 /*********************************************************/
 initial begin // reset generator
-	#3 reset = 1;
+	#5 reset = 1;
 end
 /*********************************************************/
 initial begin // reset generator
