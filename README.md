@@ -5,7 +5,7 @@ MIPS Pipeline
 IF/ID	x
 ID/EX	x	Funciona medio raro
 EX/MEM	x 	Funciona más raro. implementar WB puede arreglarlo
-MEM/WB
+MEM/WB  x       Conectado completo, sin probar en ModelSim
 
 Forwarding Unit
 

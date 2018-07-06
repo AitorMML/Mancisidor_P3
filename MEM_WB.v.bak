@@ -1,0 +1,18 @@
+
+module MEM_WB
+#(
+	parameter N= 
+)
+(
+	input clk,
+	input reset,
+	input Enable_MEM_WB,
+	
+	input [31:0] ReadMEMData,
+	input [31:0] ALUResult,
+	input [31:0] JumpAddress,
+	input [4:0] WriteReg,
+	input MEMToReg,
+	input BranchREsult,
+	
+	
