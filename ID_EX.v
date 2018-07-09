@@ -1,7 +1,7 @@
 
 module ID_EX
 #(
-	parameter N=155
+	parameter N=187
 )
 (
 	input clk,

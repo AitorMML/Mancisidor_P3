@@ -1,7 +1,7 @@
 
 module MEM_WB
 #(
-	parameter N=76
+	parameter N = 107
 )
 (
 	input clk,
@@ -10,19 +10,21 @@ module MEM_WB
 	
 	input [31:0] ReadMemData,
 	input [31:0] ALUResult,
+	input [31:0]BranchResult,
 	input [4:0] WriteRegister,
 	input JAL,
 	input RegWrite,
 	input MemtoReg,
-	input [31:0]BranchResult,
+
 	
 	output reg [31:0] ReadMemData_MEM_WB,
 	output reg [31:0] ALUResult_MEM_WB,
+	output reg [31:0]BranchResult_MEM_WB,
 	output reg [4:0] WriteRegister_MEM_WB,
 	output reg JAL_MEM_WB,
 	output reg RegWrite_MEM_WB,
-	output reg MemtoReg_MEM_WB,
-	output reg [31:0]BranchResult_MEM_WB
+	output reg MemtoReg_MEM_WB
+
 );
 always@(negedge reset or negedge clk) begin
 	if(reset==0)

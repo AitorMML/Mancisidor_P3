@@ -251,7 +251,7 @@ IF_ID_Reg
 
 ID_EX
 #(
-	.N(155)
+	.N(187)
 )
 ID_EX_Reg
 (
@@ -349,7 +349,7 @@ EX_MEM_Reg
 
 MEM_WB
 #(
-	.N(76)
+	.N(107)
 )
 MEM_WB_Reg
 (
@@ -449,8 +449,8 @@ RAMDataMemory
 	.WriteData(ReadData2_EX_MEM),
 	.Address(ALUResult_EX_MEM),
 	.clk(clk),
-	.MemWrite(MemWrite_wire),
-	.MemRead(MemRead_wire),
+	.MemWrite(MemWrite_EX_MEM),
+	.MemRead(MemRead_EX_MEM),
 	
 	.ReadData(ReadMemData_wire)
 );
