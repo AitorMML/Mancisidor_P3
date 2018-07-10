@@ -1,7 +1,7 @@
 # Description: Tarea pipeline
 
 .text
-	nop
+#	nop
 	add $zero, $zero, $zero # nop		
 	add $zero, $zero, $zero # nop	
 	addi $t0, $zero, 5
@@ -14,6 +14,8 @@
 		add $zero, $zero, $zero # nop
 		add $zero, $zero, $zero # nop
 	addi $t2, $t1, 3
+		nop
+		nop
 	addi $t3, $t3, 0x10010000
 		add $zero, $zero, $zero # nop
 	# Libra dependencia de $t2

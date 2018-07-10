@@ -251,7 +251,7 @@ IF_ID_Reg
 
 ID_EX
 #(
-	.N(155)
+	.N(187)
 )
 ID_EX_Reg
 (
@@ -349,7 +349,7 @@ EX_MEM_Reg
 
 MEM_WB
 #(
-	.N(76)
+	.N(107)
 )
 MEM_WB_Reg
 (
@@ -430,8 +430,8 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_ID_EX),
-	.B(ReadData2OrImmmediate_wire),
+	.A(ReadData1_ID_EX),					/// salida de forwarding A
+	.B(ReadData2OrImmmediate_wire),	/// salida de forwarding B
 	.shamt(SignExtend_ID_EX[10:6]),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
@@ -449,8 +449,8 @@ RAMDataMemory
 	.WriteData(ReadData2_EX_MEM),
 	.Address(ALUResult_EX_MEM),
 	.clk(clk),
-	.MemWrite(MemWrite_wire),
-	.MemRead(MemRead_wire),
+	.MemWrite(MemWrite_EX_MEM),
+	.MemRead(MemRead_EX_MEM),
 	
 	.ReadData(ReadMemData_wire)
 );
@@ -610,6 +610,44 @@ JRMUX
 	
 	.MUX_Output(JRResult_wire)		//Manda a PC
 );
+
+
+//**********************
+// Forwarding Unit
+
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingA
+(
+	.Selector(), 
+	.MUX_Data0(ReadData1_ID_EX),
+	.MUX_Data1(),
+	.MUX_Data2(),
+	
+	.MUX_Output()
+
+);
+
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingB
+(
+	.Selector(), 
+	.MUX_Data0(ReadData2OrImmmediate_wire),
+	.MUX_Data1(),
+	.MUX_Data2(),
+	
+	.MUX_Output()
+
+);
+
+
 
 endmodule
 
