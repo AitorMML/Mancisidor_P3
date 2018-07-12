@@ -13,6 +13,7 @@ module ID_EX
 	input [31:0] ReadData2,
 	input [31:0] ImmediateExtend,
 	input [31:0]JumpAddress,
+	input [4:0] Rs,
 	input [4:0] Rt,
 	input [4:0] Rd,
 	input [2:0] ALUOp,
@@ -34,6 +35,7 @@ module ID_EX
 	output reg [31:0] ReadData2_ID_EX,
 	output reg [31:0] SignExtend_ID_EX,
 	output reg [31:0]JumpAddress_ID_EX,
+	output reg [4:0] Rs_ID_EX,
 	output reg [4:0] Rt_ID_EX,
 	output reg [4:0] Rd_ID_EX,
 	output reg [2:0] ALUOp_ID_EX,
@@ -58,6 +60,7 @@ always@(negedge reset or negedge clk) begin
 			ReadData2_ID_EX 	<= 0;
 			SignExtend_ID_EX 	<= 0;
 			JumpAddress_ID_EX <= 0;
+			Rs_ID_EX				<= 0;
 			Rt_ID_EX 			<= 0;
 			Rd_ID_EX 			<= 0;
 			ALUOp_ID_EX 		<= 0;
@@ -81,6 +84,7 @@ always@(negedge reset or negedge clk) begin
 				ReadData2_ID_EX 	<= ReadData2;
 				SignExtend_ID_EX 	<= ImmediateExtend;
 				JumpAddress_ID_EX <= JumpAddress;
+				Rs_ID_EX				<= Rs;
 				Rt_ID_EX 			<= Rt;
 				Rd_ID_EX 			<= Rd;
 				ALUOp_ID_EX 		<= ALUOp;

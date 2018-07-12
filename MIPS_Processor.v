@@ -53,7 +53,7 @@ wire BNE_EX_MEM;
 wire BranchEQ_wire;
 wire BEQ_ID_EX;
 wire BEQ_EX_MEM;
-wire [31:0]BranchResult_MEM_WB;
+
 
 wire RegDst_wire;
 wire RegDest_ID_EX;
@@ -102,12 +102,14 @@ wire JRControl_wire;
 wire JR_ID_EX;
 wire JR_EX_MEM;
 
-
+wire [1:0] ForwardA_wire;
+wire [1:0] ForwardB_wire;
 wire [2:0] ALUOp_wire;
 wire [2:0] ALUOp_ID_EX;
 wire [3:0] ALUOperation_wire;
 wire [4:0] IorJ_wire;
 wire [4:0] Rd_ID_EX;
+wire [4:0] Rs_ID_EX;
 wire [4:0] Rt_ID_EX;
 wire [4:0] WriteRegister_wire;
 wire [4:0] WriteRegister_EX_MEM;
@@ -134,6 +136,8 @@ wire [31:0] ImmediateExtend_wire;
 wire [31:0] SignExtend_ID_EX;
 	
 wire [31:0] ReadData2OrImmmediate_wire;
+wire [31:0] ForwardA_result;
+wire [31:0] ForwardB_result;
 wire [31:0] ALUResult_wire;
 wire [31:0] ALUResult_EX_MEM;
 wire [31:0] ALUResult_MEM_WB;
@@ -147,6 +151,7 @@ wire [31:0] ShiftedImmediateExtended_wire;
 wire [31:0] BranchAddress_wire;	// El que entra al mux de ramas (constante extendida y recorrida a la izq)
 wire [31:0] BranchAddress_EX_MEM;
 wire [31:0] BranchResult_wire;	// El que entra al MUX del salto
+wire [31:0] BranchResult_MEM_WB; // Para JAL o WB
 
 wire [31:0] JumpAddress_wire;		// Combinación del desplazo de instrucción y parte alta de PC+4
 wire [31:0] JumpAddress_ID_EX;
@@ -263,6 +268,7 @@ ID_EX_Reg
 	.ReadData2(ReadData2_wire),
 	.ImmediateExtend(ImmediateExtend_wire),
 	.JumpAddress(JumpAddress_wire),
+	.Rs(Instruction_IF_ID[25:21]),
 	.Rt(Instruction_IF_ID[20:16]),
 	.Rd(Instruction_IF_ID[15:11]),
 	.ALUOp(ALUOp_wire),
@@ -284,6 +290,7 @@ ID_EX_Reg
 	.ReadData2_ID_EX(ReadData2_ID_EX),
 	.SignExtend_ID_EX(SignExtend_ID_EX),
 	.JumpAddress_ID_EX(JumpAddress_ID_EX),
+	.Rs_ID_EX(Rs_ID_EX),
 	.Rt_ID_EX(Rt_ID_EX),
 	.Rd_ID_EX(Rd_ID_EX),
 	.ALUOp_ID_EX(ALUOp_ID_EX),
@@ -430,8 +437,8 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_ID_EX),					/// salida de forwarding A
-	.B(ReadData2OrImmmediate_wire),	/// salida de forwarding B
+	.A(ForwardA_result),					/// salida de forwarding A
+	.B(ForwardB_result),					/// salida de forwarding B
 	.shamt(SignExtend_ID_EX[10:6]),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
@@ -622,13 +629,13 @@ Multiplexer3to1
 )
 ForwardingA
 (
-	.Selector(), 
+	.Selector(ForwardA_wire), 
 	.MUX_Data0(ReadData1_ID_EX),
-	.MUX_Data1(),
-	.MUX_Data2(),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
 	
-	.MUX_Output()
-
+	.MUX_Output(ForwardA_result)
+ 
 );
 
 
@@ -638,16 +645,29 @@ Multiplexer3to1
 )
 ForwardingB
 (
-	.Selector(), 
+	.Selector(ForwardB_wire), 
 	.MUX_Data0(ReadData2OrImmmediate_wire),
-	.MUX_Data1(),
-	.MUX_Data2(),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
 	
-	.MUX_Output()
+	.MUX_Output(ForwardB_result)
 
 );
 
-
+ForwardingUnit
+Forward
+(
+	.ID_EX_Rs(Rs_ID_EX),
+	.ID_EX_Rt(Rt_ID_EX),
+	.EX_MEM_Rd(WriteRegister_EX_MEM),	//después de JAL
+	.MEM_WB_Rd(WriteRegister_MEM_WB),	
+	.EX_MEM_RegWrite(RegWrite_EX_MEM),	// señal de control
+	.MEM_WB_RegWrite(RegWrite_MEM_WB),
+	
+	.ForwardA(ForwardA_wire),
+	.ForwardB(ForwardB_wire)
+	
+);
 
 endmodule
 

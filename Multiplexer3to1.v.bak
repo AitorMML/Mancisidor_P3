@@ -8,7 +8,7 @@ module Multiplexer3to1
 	parameter NBits=32
 )
 (
-	input [1:0] Selector,	// 2-bit selector
+	input Selector[1:0],	// 2-bit selector
 	input [NBits-1:0] MUX_Data0,	// ID/EX
 	input [NBits-1:0] MUX_Data1,	// WB
 	input [NBits-1:0] MUX_Data2,	// EX/MEM
@@ -23,7 +23,7 @@ module Multiplexer3to1
 		else if (Selector == 10)
 			MUX_Output = MUX_Data2;
 		else	// 00 or 11
-			MUX_Output = MUX_Data0;
+			MUX_Output = Mux_Data0;
 	end
 
 endmodule
