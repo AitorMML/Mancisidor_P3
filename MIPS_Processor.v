@@ -53,7 +53,6 @@ wire BNE_EX_MEM;
 wire BranchEQ_wire;
 wire BEQ_ID_EX;
 wire BEQ_EX_MEM;
-wire [31:0]BranchResult_MEM_WB;
 
 wire RegDst_wire;
 wire RegDest_ID_EX;
@@ -103,10 +102,22 @@ wire JR_ID_EX;
 wire JR_EX_MEM;
 
 
+wire HazardMux; 
+wire IF_ID_Write;
+wire PCWrite;  
+
+wire [1:0] ForwardA_wire;
+wire [1:0] ForwardB_wire;
+
+wire [31:0] ForwardA_result;
+wire [31:0] ForwardB_result;
+
+
 wire [2:0] ALUOp_wire;
 wire [2:0] ALUOp_ID_EX;
 wire [3:0] ALUOperation_wire;
 wire [4:0] IorJ_wire;
+wire [4:0] Rs_ID_EX;
 wire [4:0] Rd_ID_EX;
 wire [4:0] Rt_ID_EX;
 wire [4:0] WriteRegister_wire;
@@ -134,6 +145,7 @@ wire [31:0] ImmediateExtend_wire;
 wire [31:0] SignExtend_ID_EX;
 	
 wire [31:0] ReadData2OrImmmediate_wire;
+
 wire [31:0] ALUResult_wire;
 wire [31:0] ALUResult_EX_MEM;
 wire [31:0] ALUResult_MEM_WB;
@@ -147,6 +159,7 @@ wire [31:0] ShiftedImmediateExtended_wire;
 wire [31:0] BranchAddress_wire;	// El que entra al mux de ramas (constante extendida y recorrida a la izq)
 wire [31:0] BranchAddress_EX_MEM;
 wire [31:0] BranchResult_wire;	// El que entra al MUX del salto
+wire [31:0]	BranchResult_MEM_WB;
 
 wire [31:0] JumpAddress_wire;		// Combinación del desplazo de instrucción y parte alta de PC+4
 wire [31:0] JumpAddress_ID_EX;
@@ -187,7 +200,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(JRResult_wire),
+	.NewPC(PCWrite),
 	.PCValue(PC_wire)
 );
 
@@ -231,6 +244,88 @@ MUX_ForRTypeAndIType
 
 );
 
+Hazard
+#(
+	.N(18)
+)
+Hazard_Unit
+(
+	.ID_EX_MemRead(MemRead_ID_EX), 
+	.ID_EX_Rt(Rt_ID_EX),
+	.IF_ID_Rs(Instruction_IF_ID[20:16]),
+	.IF_ID_Rt(Instruction_IF_ID[15:11]),
+		
+	.HazardMux(HazardMux), 
+	.IF_ID_Write(IF_ID_Write),
+	.PCWrite(PCWrite)  
+
+);
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_Hazard
+(
+	.Selector(HazardMux),
+	.MUX_Data0(Instruction_IF_ID[31:26]),
+	.MUX_Data1(0),
+	
+	.MUX_Output()
+
+);
+
+//Forwarding Unit
+
+ForwardingUnit
+#(
+	.N(20)
+)
+Forward
+(
+	.ID_EX_Rs(Rd_ID_EX),
+	.ID_EX_Rt(Rt_ID_EX),
+	
+	.EX_MEM_Rd(WriteRegister_EX_MEM),	
+	.MEM_WB_Rd(WriteRegister_MEM_WB),
+	
+	.EX_MEM_RegWrite(RegWrite_EX_MEM),	
+	.MEM_WB_RegWrite(RegWrite_MEM_WB),
+	
+	.ForwardA(ForwardA),
+	.ForwardB(ForwardB),
+
+);
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingA
+(
+	.Selector(ForwardA_wire), 
+	.MUX_Data0(ReadData1_ID_EX),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
+	
+	.MUX_Output(ForwardA_result)
+ 
+);
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingB
+(
+	.Selector(ForwardB_wire), 
+	.MUX_Data0(ReadData2OrImmmediate_wire),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
+	
+	.MUX_Output(ForwardB_result)
+
+);
 
 
 IF_ID
@@ -242,7 +337,7 @@ IF_ID_Reg
 	.clk(clk),
 	.reset(reset),
 	.PC4(PC_4_wire),
-	.Enable_IF_ID(1),
+	.Enable_IF_ID(IF_ID_Write),
 	.Instruction(Instruction_wire),
 	.PC4_IF_ID(PC_4_IF_ID),
 	.Instruction_IF_ID(Instruction_IF_ID)	
@@ -263,6 +358,7 @@ ID_EX_Reg
 	.ReadData2(ReadData2_wire),
 	.ImmediateExtend(ImmediateExtend_wire),
 	.JumpAddress(JumpAddress_wire),
+	.Rs(Instruction_IF_ID[25:21]),
 	.Rt(Instruction_IF_ID[20:16]),
 	.Rd(Instruction_IF_ID[15:11]),
 	.ALUOp(ALUOp_wire),
@@ -284,6 +380,7 @@ ID_EX_Reg
 	.ReadData2_ID_EX(ReadData2_ID_EX),
 	.SignExtend_ID_EX(SignExtend_ID_EX),
 	.JumpAddress_ID_EX(JumpAddress_ID_EX),
+	.Rs_ID_EX(Rs_ID_EX),
 	.Rt_ID_EX(Rt_ID_EX),
 	.Rd_ID_EX(Rd_ID_EX),
 	.ALUOp_ID_EX(ALUOp_ID_EX),
@@ -430,8 +527,8 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_ID_EX),					/// salida de forwarding A
-	.B(ReadData2OrImmmediate_wire),	/// salida de forwarding B
+	.A(ForwardA_Result),					/// salida de forwarding A
+	.B(ForwardB_wire),
 	.shamt(SignExtend_ID_EX[10:6]),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
@@ -610,43 +707,6 @@ JRMUX
 	
 	.MUX_Output(JRResult_wire)		//Manda a PC
 );
-
-
-//**********************
-// Forwarding Unit
-
-
-Multiplexer3to1
-#(
-	.NBits(32)
-)
-ForwardingA
-(
-	.Selector(), 
-	.MUX_Data0(ReadData1_ID_EX),
-	.MUX_Data1(),
-	.MUX_Data2(),
-	
-	.MUX_Output()
-
-);
-
-
-Multiplexer3to1
-#(
-	.NBits(32)
-)
-ForwardingB
-(
-	.Selector(), 
-	.MUX_Data0(ReadData2OrImmmediate_wire),
-	.MUX_Data1(),
-	.MUX_Data2(),
-	
-	.MUX_Output()
-
-);
-
 
 
 endmodule
