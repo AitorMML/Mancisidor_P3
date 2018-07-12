@@ -40,7 +40,7 @@ localparam LUI = 4'b0111;
 
 
    
-   always @ (A or B or ALUOperation)
+   always @ (A or B or ALUOperation or shamt)
      begin
 		case (ALUOperation)
 			AND:

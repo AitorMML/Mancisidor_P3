@@ -1,0 +1,27 @@
+module HazardDetect
+(
+		input [2:0] ID_EX_MemRead, //Branch, MemRead, MemWrite
+		input [4:0] ID_EX_Rt,
+		input [4:0] IF_ID_Rs,
+		input [4:0] IF_ID_Rt,
+		
+		output reg HazardMux, 
+		output reg IFIDWrite,
+		output reg PCWrite    //stall
+		
+);
+
+always@(ID_EX_MemRead or ID_EX_Rt or IF_ID_Rs or IF_ID_Rt or PCWrite or IF_ID_Write or HazardMux)
+	begin
+		PCWrite = 0;
+		IFIDWrite = 1;
+		HazardMux =0;
+	end	
+	if((ID_EX_MemRead)&&((ID_EXRt == IF_ID_Rs) || (IDEXRt == IFIDRt)))
+	 begin
+		PCWrite = 1;
+		IF_ID_Write = 0;
+		HazardMux =1;
+	 end 
+end
+endmodule

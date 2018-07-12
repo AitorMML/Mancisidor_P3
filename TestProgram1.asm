@@ -3,40 +3,40 @@
 .text
 #	nop
 	add $zero, $zero, $zero # nop		
-	add $zero, $zero, $zero # nop	
+#	add $zero, $zero, $zero # nop	
 	addi $t0, $zero, 5
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	add $t1, $t0, $zero
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	addi $t1, $t1, 2
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	addi $t2, $t1, 3
-		nop
-		nop
+#		nop
+#		nop
 	addi $t3, $t3, 0x10010000
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	# Libra dependencia de $t2
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	# Tibra dependencia de $t3
 	sw $t2, 0($t3)
 		add $zero, $zero, $zero # nop
 		add $zero, $zero, $zero # nop
 	add $s0, $t2, $t1
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	sub $s1, $s0, $t3
 	lw $t2, 0($t3)
 		add $zero, $zero, $zero # nop
 		add $zero, $zero, $zero # nop
 	addi $s2, $t2, -2
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	or $s2, $s2, $t4
-		add $zero, $zero, $zero # nop
-		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
+#		add $zero, $zero, $zero # nop
 	sll $s7, $s2, 2
 	
 
