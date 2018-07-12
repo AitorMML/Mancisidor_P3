@@ -88,12 +88,10 @@ wire Jump_wire;
 wire J_ID_EX;
 wire J_EX_MEM;
 
-
 wire JAL_wire;
 wire JAL_ID_EX;
 wire JAL_EX_MEM;
 wire JAL_MEM_WB;
-
 
 wire OPCodeAND_wire;
 wire FuncAND_wire;
@@ -101,28 +99,25 @@ wire JRControl_wire;
 wire JR_ID_EX;
 wire JR_EX_MEM;
 
-
-wire HazardMux; 
-wire IF_ID_Write;
-wire PCWrite;  
+wire PC_Write;	// Enable PC
+wire IF_ID_Write; // Enable IF/ID
+wire HazardMux;
 
 wire [1:0] ForwardA_wire;
 wire [1:0] ForwardB_wire;
-
-wire [31:0] ForwardA_result;
-wire [31:0] ForwardB_result;
-
-
 wire [2:0] ALUOp_wire;
 wire [2:0] ALUOp_ID_EX;
 wire [3:0] ALUOperation_wire;
 wire [4:0] IorJ_wire;
-wire [4:0] Rs_ID_EX;
 wire [4:0] Rd_ID_EX;
+wire [4:0] Rs_ID_EX;
 wire [4:0] Rt_ID_EX;
 wire [4:0] WriteRegister_wire;
 wire [4:0] WriteRegister_EX_MEM;
 wire [4:0] WriteRegister_MEM_WB;
+
+wire [13:0] ControlOut_wire;	// Bus de señales de control. Va a MUX_Hazard
+wire [13:0] HazardControl_wire;
 
 wire [27:0] ShiftedInstruction_wire;
 
@@ -145,7 +140,8 @@ wire [31:0] ImmediateExtend_wire;
 wire [31:0] SignExtend_ID_EX;
 	
 wire [31:0] ReadData2OrImmmediate_wire;
-
+wire [31:0] ForwardA_result;
+wire [31:0] ForwardB_result;
 wire [31:0] ALUResult_wire;
 wire [31:0] ALUResult_EX_MEM;
 wire [31:0] ALUResult_MEM_WB;
@@ -159,7 +155,7 @@ wire [31:0] ShiftedImmediateExtended_wire;
 wire [31:0] BranchAddress_wire;	// El que entra al mux de ramas (constante extendida y recorrida a la izq)
 wire [31:0] BranchAddress_EX_MEM;
 wire [31:0] BranchResult_wire;	// El que entra al MUX del salto
-wire [31:0]	BranchResult_MEM_WB;
+wire [31:0] BranchResult_MEM_WB; // Para JAL o WB
 
 wire [31:0] JumpAddress_wire;		// Combinación del desplazo de instrucción y parte alta de PC+4
 wire [31:0] JumpAddress_ID_EX;
@@ -195,12 +191,26 @@ ControlUnit
 	.MemtoReg(MemtoReg_wire)
 );
 
+assign ControlOut_wire = {	JRControl_wire, 	//1b
+									JAL_wire, 			//1b
+									Jump_wire, 			//1b
+									RegDst_wire, 		//1b
+									BranchEQ_wire, 	//1b
+									BranchNE_wire, 	//1b
+									MemRead_wire, 		//1b
+									MemtoReg_wire, 	//1b
+									MemWrite_wire, 	//1b
+									ALUSrc_wire, 		//1b
+									RegWrite_wire,		//1b
+									ALUOp_wire}; 		//3b
+
 PC_Register
 ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(PCWrite),
+	.PC_Enable(PC_Write),
+	.NewPC(JRResult_wire),
 	.PCValue(PC_wire)
 );
 
@@ -244,88 +254,6 @@ MUX_ForRTypeAndIType
 
 );
 
-Hazard
-#(
-	.N(18)
-)
-Hazard_Unit
-(
-	.ID_EX_MemRead(MemRead_ID_EX), 
-	.ID_EX_Rt(Rt_ID_EX),
-	.IF_ID_Rs(Instruction_IF_ID[20:16]),
-	.IF_ID_Rt(Instruction_IF_ID[15:11]),
-		
-	.HazardMux(HazardMux), 
-	.IF_ID_Write(IF_ID_Write),
-	.PCWrite(PCWrite)  
-
-);
-
-Multiplexer2to1
-#(
-	.NBits(32)
-)
-MUX_Hazard
-(
-	.Selector(HazardMux),
-	.MUX_Data0(Instruction_IF_ID[31:26]),
-	.MUX_Data1(0),
-	
-	.MUX_Output()
-
-);
-
-//Forwarding Unit
-
-ForwardingUnit
-#(
-	.N(20)
-)
-Forward
-(
-	.ID_EX_Rs(Rd_ID_EX),
-	.ID_EX_Rt(Rt_ID_EX),
-	
-	.EX_MEM_Rd(WriteRegister_EX_MEM),	
-	.MEM_WB_Rd(WriteRegister_MEM_WB),
-	
-	.EX_MEM_RegWrite(RegWrite_EX_MEM),	
-	.MEM_WB_RegWrite(RegWrite_MEM_WB),
-	
-	.ForwardA(ForwardA),
-	.ForwardB(ForwardB),
-
-);
-
-Multiplexer3to1
-#(
-	.NBits(32)
-)
-ForwardingA
-(
-	.Selector(ForwardA_wire), 
-	.MUX_Data0(ReadData1_ID_EX),
-	.MUX_Data1(WriteBack_wire),
-	.MUX_Data2(ALUResult_EX_MEM),
-	
-	.MUX_Output(ForwardA_result)
- 
-);
-
-Multiplexer3to1
-#(
-	.NBits(32)
-)
-ForwardingB
-(
-	.Selector(ForwardB_wire), 
-	.MUX_Data0(ReadData2OrImmmediate_wire),
-	.MUX_Data1(WriteBack_wire),
-	.MUX_Data2(ALUResult_EX_MEM),
-	
-	.MUX_Output(ForwardB_result)
-
-);
 
 
 IF_ID
@@ -346,7 +274,7 @@ IF_ID_Reg
 
 ID_EX
 #(
-	.N(187)
+	.N(192)
 )
 ID_EX_Reg
 (
@@ -361,18 +289,18 @@ ID_EX_Reg
 	.Rs(Instruction_IF_ID[25:21]),
 	.Rt(Instruction_IF_ID[20:16]),
 	.Rd(Instruction_IF_ID[15:11]),
-	.ALUOp(ALUOp_wire),
-	.RegDest(RegDst_wire),
-	.ALUSrc(ALUSrc_wire),
-	.BNE(BranchNE_wire),
-	.BEQ(BranchEQ_wire),
-	.RegWrite(RegWrite_wire),
-	.MemWrite(MemWrite_wire),
-	.MemRead(MemRead_wire),
-	.MemtoReg(MemtoReg_wire),
-	.JAL(JAL_wire),
-	.J(Jump_wire),
-	.JR(JRControl_wire),
+	.JR		(HazardControl_wire[13]),// JRControl_wire
+	.JAL		(HazardControl_wire[12]),// JAL_wire
+	.J			(HazardControl_wire[11]),// Jump_wire
+	.RegDest	(HazardControl_wire[10]),// RegDst_wire
+	.BEQ		(HazardControl_wire[9]), // BranchEQ_wire
+	.BNE		(HazardControl_wire[8]), // BranchNE_wire
+	.MemRead	(HazardControl_wire[7]), // MemRead_wire
+	.MemtoReg(HazardControl_wire[6]), // MemtoReg_wire
+	.MemWrite(HazardControl_wire[5]), // MemWrite_wire
+	.ALUSrc	(HazardControl_wire[4]), // ALUSrc_wire
+	.RegWrite(HazardControl_wire[3]), // RegWrite_wire
+	.ALUOp	(HazardControl_wire[2:0]),// ALUOp_wire
 	.Enable_ID_EX(1),
 	
 	.PC4_ID_EX(PC_4_ID_EX),
@@ -400,7 +328,7 @@ ID_EX_Reg
 
 EX_MEM
 #(
-	.N(146)
+	.N(178)
 )
 EX_MEM_Reg
 (
@@ -527,8 +455,8 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ForwardA_Result),					/// salida de forwarding A
-	.B(ForwardB_wire),
+	.A(ForwardA_result),					/// salida de forwarding A
+	.B(ForwardB_result),					/// salida de forwarding B
 	.shamt(SignExtend_ID_EX[10:6]),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
@@ -708,6 +636,90 @@ JRMUX
 	.MUX_Output(JRResult_wire)		//Manda a PC
 );
 
+
+//**********************
+// Forwarding Unit
+
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingA
+(
+	.Selector(ForwardA_wire), 
+	.MUX_Data0(ReadData1_ID_EX),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
+	
+	.MUX_Output(ForwardA_result)
+ 
+);
+
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+ForwardingB
+(
+	.Selector(ForwardB_wire), 
+	.MUX_Data0(ReadData2OrImmmediate_wire),
+	.MUX_Data1(WriteBack_wire),
+	.MUX_Data2(ALUResult_EX_MEM),
+	
+	.MUX_Output(ForwardB_result)
+
+);
+
+ForwardingUnit
+Forward
+(
+	.ID_EX_Rs(Rs_ID_EX),
+	.ID_EX_Rt(Rt_ID_EX),
+	.EX_MEM_Rd(WriteRegister_EX_MEM),	//después de JAL
+	.MEM_WB_Rd(WriteRegister_MEM_WB),	
+	.EX_MEM_RegWrite(RegWrite_EX_MEM),	// señal de control
+	.MEM_WB_RegWrite(RegWrite_MEM_WB),
+	
+	.ForwardA(ForwardA_wire),
+	.ForwardB(ForwardB_wire)
+	
+);
+
+///Harzard Detection
+
+Hazard
+#(
+	.N(18)
+)
+Hazard_Unit
+(
+	.ID_EX_MemRead(MemRead_ID_EX), 
+	.ID_EX_Rt(Rt_ID_EX),
+	.IF_ID_Rs(Instruction_IF_ID[25:21]),
+	.IF_ID_Rt(Instruction_IF_ID[20:16]),
+		
+	.HazardMux(HazardMux), 
+	.IF_ID_Write(IF_ID_Write),
+	.PCWrite(PC_Write)  
+
+);
+
+
+
+Multiplexer2to1
+#(
+	.NBits(14)
+)
+MUX_Hazard
+(
+	.Selector(HazardMux),
+	.MUX_Data0(ControlOut_wire),	// Cable concatenado de señales de control
+	.MUX_Data1(0),
+	
+	.MUX_Output(HazardControl_wire) // Va a ID/EX
+);
 
 endmodule
 
